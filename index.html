@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Base Extra Finance Leveraged Yield Farming (LYF) & Lending Radar</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(18, 25, 42, 0.85);
+      --border: #223254;
+      --accent-base: #0052ff;
+      --accent-extra: #10b981;
+      --text: #f0f6fc;
+      --text-muted: #8e9fb8;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    .header { text-align: center; margin-bottom: 28px; }
+    .badge { display: inline-block; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid var(--accent-extra); border-radius: 12px; font-size: 12px; color: var(--accent-extra); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; background: linear-gradient(135deg, #fff, var(--accent-extra), var(--accent-base)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    p.subtitle { color: var(--text-muted); font-size: 14px; max-width: 800px; margin: 0 auto; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; backdrop-filter: blur(12px); }
+    .card h2 { font-size: 16px; margin-bottom: 14px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+    .card h2 span { font-size: 12px; color: var(--accent-extra); }
+    
+    .metric-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px; }
+    .metric-row span.label { color: var(--text-muted); }
+    .metric-row span.val { font-weight: 600; font-family: monospace; }
+    .metric-row span.val.accent { color: var(--accent-extra); }
+    .metric-row span.val.base { color: var(--accent-base); }
+    .metric-row span.val.warn { color: var(--warn); }
+    .metric-row span.val.danger { color: var(--danger); }
+    
+    .progress-bar { width: 100%; height: 8px; background: #162036; border-radius: 4px; overflow: hidden; margin: 8px 0 16px 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent-base), var(--accent-extra)); }
+    
+    .vip-box { border-top: 1px dashed var(--border); margin-top: 16px; padding-top: 14px; font-size: 12px; text-align: center; }
+    .vip-btn { display: inline-block; width: 100%; padding: 10px; background: linear-gradient(135deg, var(--accent-extra), #059669); color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; margin-top: 8px; }
+    .vip-btn:hover { opacity: 0.9; }
+    
+    .address-tag { font-family: monospace; background: #0c1220; padding: 6px 10px; border-radius: 6px; border: 1px solid #1a2742; font-size: 11px; word-break: break-all; margin: 6px 0; text-align: left; }
+    
+    input[type=range] { width: 100%; margin: 8px 0; accent-color: var(--accent-extra); }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="badge">Base Leveraged Yield Farming (LYF) Suite</div>
+    <h1>Base Extra Finance LYF & Lending Radar</h1>
+    <p class="subtitle">Multi-asset 1x–7x leverage compounding calculations, critical debt ratio kill factor boundaries, and isolated lending vault kinked utilization modeling on Base.</p>
+  </div>
+
+  <div class="grid">
+    <!-- Card 1: LYF Yield & Leverage Multiplier -->
+    <div class="card">
+      <h2>LYF Net Equity Yield Multiplier <span>Compounding</span></h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Simulate net APY compounding as leverage expands DEX farm rewards minus borrow financing costs.</p>
+      
+      <label style="font-size:12px; color:var(--text-muted);">Leverage Factor: <b id="levVal" style="color:var(--accent-extra);">3.0x Leverage</b></label>
+      <input type="range" id="levSlider" min="10" max="70" value="30" oninput="updateLyfModel()">
+
+      <div class="metric-row" style="margin-top:12px;">
+        <span class="label">Initial Equity Deployed:</span>
+        <span class="val">$10,000 USDC</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Total Position Farming:</span>
+        <span class="val base" id="posVal">$30,000 USD</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Pool Base APR (Aerodrome LP):</span>
+        <span class="val">35.00% APR</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Borrow Interest Rate:</span>
+        <span class="val warn">12.00% APR</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Net Compounded Equity APR:</span>
+        <span class="val accent" id="netApr">+81.00% APR</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="aprProgress" style="width: 81%;"></div>
+      </div>
+      <div class="metric-row">
+        <span class="label">Yield Enhancement Factor:</span>
+        <span class="val accent" id="enhancementVal">2.31x Boost</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Debt Ratio & Kill Factor Sentinel -->
+    <div class="card">
+      <h2>Debt Ratio & Liquidation Kill Factor <span>Risk Buffer</span></h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Quantifies position health and buffer distance to the 85.0% liquidation kill factor.</p>
+      
+      <div class="metric-row">
+        <span class="label">Current Position Value:</span>
+        <span class="val">$30,000 USD</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Outstanding Borrowed Debt:</span>
+        <span class="val warn">$20,000 USD</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Current Debt Ratio:</span>
+        <span class="val accent" style="background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:4px;">66.67% (HEALTHY)</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Liquidation Kill Factor:</span>
+        <span class="val danger">85.00%</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Safety Buffer Cushion:</span>
+        <span class="val accent">+18.33% Cushion</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Max Tolerable Price Shock:</span>
+        <span class="val base">~21.5% Adverse Move</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Isolated Vault Kinked Utilization -->
+    <div class="card">
+      <h2>Isolated Vault Kinked Rate Model <span>Supply / Borrow</span></h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Borrow interest rate spikes steeply above 80% utilization to attract lender deposits.</p>
+      
+      <div class="metric-row">
+        <span class="label">Vault Total Supplied:</span>
+        <span class="val">$1,000,000 USDC</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Vault Total Borrowed:</span>
+        <span class="val base">$600,000 USDC</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Pool Utilization (U):</span>
+        <span class="val accent">60.00% (Sub-Kink)</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Base Rate + Slope 1:</span>
+        <span class="val">9.50% APR</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Post-Kink Slope 2 (U > 80%):</span>
+        <span class="val danger">+120.0% APR Jump</span>
+      </div>
+      <div class="metric-row">
+        <span class="label">Liquidator Net Bounty ($10k debt):</span>
+        <span class="val accent">+$447.48 USD</span>
+      </div>
+    </div>
+
+    <!-- Card 4: VIP Automated Sentinel -->
+    <div class="card">
+      <h2>Unlock VIP Extra Sentinel <span>5 Base USDC</span></h2>
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Automated ethers.js LYF position health guardian, dynamic debt ratio monitor, and auto-deleverage sentinel.</p>
+      
+      <div class="vip-box">
+        <p style="color:var(--text-muted); margin-bottom:4px;">Send payment to our non-custodial burner address:</p>
+        <div class="address-tag">Base EVM: 0xF0E0D361bBE899F3089f0a968506eF2B97693c01</div>
+        <div class="address-tag">Solana: DW2MdHEq3qZ6nh9b5YFUoaPnBuuxC8Gz2785kwbbjSAM</div>
+        <button class="vip-btn" onclick="alert('Send 5 Base USDC or 0.03 SOL to the receive address above. The on-chain daemon monitors RPCs and automatically grants VIP access.')">Unlock VIP Sentinel License</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateLyfModel() {
+      const sliderVal = parseInt(document.getElementById('levSlider').value);
+      const lev = sliderVal / 10.0;
+      document.getElementById('levVal').innerText = lev.toFixed(1) + 'x Leverage';
+      
+      const equity = 10000.0;
+      const posVal = equity * lev;
+      const borrowed = equity * (lev - 1.0);
+      const poolApr = 35.0;
+      const borrowApr = 12.0;
+      
+      const grossYield = posVal * (poolApr / 100.0);
+      const borrowCost = borrowed * (borrowApr / 100.0);
+      const netYield = grossYield - borrowCost;
+      const netApr = (netYield / equity) * 100.0;
+      const boost = (netApr / poolApr).toFixed(2);
+
+      document.getElementById('posVal').innerText = '$' + posVal.toLocaleString() + ' USD';
+      document.getElementById('netApr').innerText = (netApr > 0 ? '+' : '') + netApr.toFixed(2) + '% APR';
+      document.getElementById('aprProgress').style.width = Math.min(100, Math.max(10, netApr)) + '%';
+      document.getElementById('enhancementVal').innerText = boost + 'x Boost';
+    }
+  </script>
+</body>
+</html>
